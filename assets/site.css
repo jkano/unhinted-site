@@ -10,6 +10,7 @@
   --mono:'JetBrains Mono',ui-monospace,monospace;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}   /* a component's own display (flex, grid) must not beat the hidden attribute */
 html{scroll-behavior:smooth}
 body{margin:0;font-family:var(--font);background:var(--ink);color:var(--cream);-webkit-text-size-adjust:100%}
 a{color:inherit}
