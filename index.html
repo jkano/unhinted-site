@@ -6,7 +6,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="Unhinted is a party word game for 3 to 10 players. One word each. Same word? It's gone. Coming soon to the App Store for iPhone, in English and Spanish.">
 <meta name="theme-color" content="#0E0C1F">
+<script>
+/* Language: a choice made with the EN/ES button wins; otherwise the browser's first English or Spanish language. Spanish lives under /es/. */
+(function(){var l;try{l=localStorage.getItem('lang')}catch(e){}
+if(l!=='es'&&l!=='en'){l='en';var n=navigator.languages||[navigator.language||'en'];for(var i=0;i<n.length;i++){if(/^es/i.test(n[i])){l='es';break}if(/^en/i.test(n[i])){break}}}
+if(l==='es')location.replace('/es'+location.pathname+location.search+location.hash)})();
+</script>
 <link rel="canonical" href="https://unhinted.jdkno.com/">
+<link rel="alternate" hreflang="en" href="https://unhinted.jdkno.com/">
+<link rel="alternate" hreflang="es" href="https://unhinted.jdkno.com/es/">
+<link rel="alternate" hreflang="x-default" href="https://unhinted.jdkno.com/">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <meta property="og:type" content="website">
@@ -17,6 +26,7 @@
 <link rel="preload" href="/assets/fonts/Nunito.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/site.css">
 <script>document.documentElement.className='js'</script>
+<script src="/assets/lang.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#how">Skip to how to play</a>
@@ -31,6 +41,7 @@
 <a href="/privacy/">Privacy</a>
 <a href="/terms/">Terms</a>
 <a href="/support/">Support</a>
+<span class="lang" role="group" aria-label="Language"><a href="/" hreflang="en" data-lang="en" aria-current="true">EN</a><a href="/es/" hreflang="es" data-lang="es">ES</a></span>
 </nav>
 </div>
 
@@ -74,22 +85,25 @@
 <main id="how">
 
 <!-- The tutorial. Wide screens: the page stops here and scrolling drives it. Phones: it plays when it comes into view. -->
-<section class="tutorial" id="tutorial" aria-hidden="true">
+<section class="tutorial" id="tutorial" aria-label="How to play (animated)">
 <div class="stage" id="stage">
 <div class="wrap inner">
 
 <div class="left">
-<span class="mono stepno" id="stepno">How to play · step 1 of 5</span>
-<div class="words">
-<div id="prevtext"><h2></h2><p></p></div>
-<div id="curtext"><h2></h2><p></p></div>
+<span class="mono stepno" id="stepno" aria-hidden="true">How to play · step 1 of 5</span>
+<div class="titles" id="titles" aria-hidden="true">
+<div id="prevtitle"><h2></h2></div>
+<div id="curtitle"><h2></h2></div>
 </div>
+<div class="message" id="message" aria-hidden="true"><p><span id="msgtyped"></span><span id="msgrest"></span></p></div>
 <div class="segs" aria-hidden="true">
 <span><i style="background:#FF5D4B"></i></span><span><i style="background:#FFAC00"></i></span><span><i style="background:#2A7AFF"></i></span><span><i style="background:#1EBDAE"></i></span><span><i style="background:#904EE2"></i></span>
 </div>
 <div class="status">
+<button class="back" id="back" type="button" aria-label="Previous step"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button class="show" id="show" type="button">Show me</button>
 <button class="pause" id="pause" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><g id="pauseicon"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></g><path id="playicon" d="M8 5.5v13l11-6.5z" style="display:none"/></svg><span id="pauselabel">Pause</span></button>
-<span class="mono" id="hint">Scroll down to play</span>
+<span class="mono" id="hint" aria-hidden="true">Scroll down to play</span>
 <button class="repeat" id="repeat" type="button">Repeat tutorial</button>
 </div>
 </div>
@@ -113,6 +127,7 @@
 <div class="note">Don't say it out loud. Don't use the word itself or anything too close to it.</div>
 <div class="grow"></div>
 <div class="btn" id="c2btn" style="background:#FFAC00">Send</div>
+<svg class="tap" id="tap2" viewBox="0 0 24 24" fill="#fff" stroke="#0E0C1F" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><rect x="7.2" y="2" width="3.6" height="15" rx="1.8"/><rect x="10.8" y="7" width="3.4" height="10" rx="1.7"/><rect x="14.2" y="8" width="3.4" height="9.5" rx="1.7"/><rect x="17.5" y="9.5" width="3.3" height="8.5" rx="1.65"/><rect x="2.6" y="12.6" width="8.6" height="3.6" rx="1.8" transform="rotate(32 6.9 14.4)"/><rect x="6" y="11.5" width="15" height="10.5" rx="4.5"/><rect x="7.6" y="11.9" width="12.4" height="5" fill="#fff" stroke="none"/></svg>
 </div>
 
 <div class="card" id="c3" data-shadow="#2A7AFF">
@@ -127,15 +142,16 @@
 </div>
 
 <div class="card" id="c4" data-shadow="#1EBDAE">
+<div class="body" id="c4body">
 <span class="label">DEV, THE SEEKER, SEES ONLY</span>
 <div style="display:flex;gap:14px;margin-top:6px"><span class="chip" style="background:#FFAC00;padding:14px 24px">sun</span><span class="chip" style="background:#1EBDAE;padding:14px 24px">waves</span></div>
 <span class="sub" style="margin-top:6px">Dev's guess</span>
 <div class="field"><span id="c4typed"></span><u></u></div>
 <div class="grow"></div>
-<div style="display:flex;align-items:center;gap:16px">
 <div class="btn" id="c4btn" style="background:#1EBDAE;align-self:center">Guess</div>
-<div class="btn" id="c4found" style="background:#8AC926;border-radius:999px;padding:8px 22px;font-size:18px;align-self:center">Found it!</div>
 </div>
+<div class="win" id="c4win"><b>Found it!</b><span>The word was beach.</span><div class="confetti" id="confetti"></div></div>
+<svg class="tap" id="tap4" viewBox="0 0 24 24" fill="#fff" stroke="#0E0C1F" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><rect x="7.2" y="2" width="3.6" height="15" rx="1.8"/><rect x="10.8" y="7" width="3.4" height="10" rx="1.7"/><rect x="14.2" y="8" width="3.4" height="9.5" rx="1.7"/><rect x="17.5" y="9.5" width="3.3" height="8.5" rx="1.65"/><rect x="2.6" y="12.6" width="8.6" height="3.6" rx="1.8" transform="rotate(32 6.9 14.4)"/><rect x="6" y="11.5" width="15" height="10.5" rx="4.5"/><rect x="7.6" y="11.9" width="12.4" height="5" fill="#fff" stroke="none"/></svg>
 </div>
 
 <div class="card" id="c5" data-shadow="#904EE2" style="padding:26px 30px;gap:12px">

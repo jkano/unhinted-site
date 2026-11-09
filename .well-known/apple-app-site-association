@@ -2,9 +2,18 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["DNFZ3V3KN7.com.jdkno.unhinted"],
+        "appIDs": [
+          "DNFZ3V3KN7.com.jdkno.unhinted"
+        ],
         "components": [
-          { "/": "/j/*", "comment": "A share link to a room" }
+          {
+            "/": "/j/*",
+            "comment": "A share link to a room (English)"
+          },
+          {
+            "/": "/es/j/*",
+            "comment": "A share link to a room (Spanish page)"
+          }
         ]
       }
     ]

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es" class="no-js">
+<head>
+<meta charset="utf-8">
+<title>Unhinted: el juego de palabras para fiestas</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Unhinted es un juego de palabras para fiestas, de 3 a 10 jugadores. Una palabra cada quien. ¿Misma palabra? Desaparece. Próximamente en la App Store para iPhone, en inglés y español.">
+<meta name="theme-color" content="#0E0C1F">
+<link rel="canonical" href="https://unhinted.jdkno.com/es/">
+<link rel="alternate" hreflang="en" href="https://unhinted.jdkno.com/">
+<link rel="alternate" hreflang="es" href="https://unhinted.jdkno.com/es/">
+<link rel="alternate" hreflang="x-default" href="https://unhinted.jdkno.com/">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Unhinted: el juego de palabras para fiestas">
+<meta property="og:description" content="Una palabra cada quien. ¿Misma palabra? Desaparece. Un juego de palabras para fiestas de 3 a 10 jugadores, próximamente en la App Store.">
+<meta property="og:url" content="https://unhinted.jdkno.com/es/">
+<meta name="twitter:card" content="summary">
+<link rel="preload" href="/assets/fonts/Nunito.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/site.css">
+<script>document.documentElement.className='js'</script>
+<script src="/assets/lang.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#how">Saltar a cómo jugar</a>
+
+<!-- Hero -->
+<header class="hero">
+<div class="wrap">
+<div class="top">
+<a class="brand" href="/es/">unhinted</a>
+<nav class="nav" aria-label="Principal">
+<a href="#how">Cómo jugar</a>
+<a href="/es/privacy/">Privacidad</a>
+<a href="/es/terms/">Términos</a>
+<a href="/es/support/">Soporte</a>
+<span class="lang" role="group" aria-label="Idioma"><a href="/" hreflang="en" data-lang="en">EN</a><a href="/es/" hreflang="es" data-lang="es" aria-current="true">ES</a></span>
+</nav>
+</div>
+
+<div class="row">
+<div class="copy">
+<div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<h1>unhinted</h1>
+<p class="tag">Una palabra cada quien.<br><mark>¿Misma palabra? Desaparece.</mark></p>
+<div class="store-row">
+<div class="store" role="img" aria-label="Próximamente en la App Store">
+<svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#0E0C1F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 11l5 5 5-5M5 20h14"/></svg>
+<span><small>Próximamente en la</small><b>App Store</b></span>
+</div>
+<span class="mono">iPhone · Gratis</span>
+</div>
+</div>
+
+<div class="phone-col" id="phone-col">
+<div class="tilt" id="tilt" aria-hidden="true">
+<div class="phone">
+<div class="notch"></div>
+<div class="toprow"><span class="pill">Cómo jugar</span><span class="avatar">🦊</span></div>
+<div class="logo">
+<div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<b>unhinted</b>
+<span>Una palabra cada quien.<br>¿Misma palabra? Desaparece.</span>
+</div>
+<div class="grow"></div>
+<div class="create">Crear una sala</div>
+<div class="or"><i></i><b>O ENTRA A UNA SALA</b><i></i></div>
+<div class="code"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<div class="two"><span>Pegar</span><span>Escanear QR</span></div>
+<div class="hint">Escribe el código o escanea el QR para entrar</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</header>
+
+<main id="how">
+
+<!-- The tutorial. Wide screens: the page stops here and scrolling drives it. Phones: it plays when it comes into view. -->
+<section class="tutorial" id="tutorial" aria-label="Cómo jugar (animado)">
+<div class="stage" id="stage">
+<div class="wrap inner">
+
+<div class="left">
+<span class="mono stepno" id="stepno" aria-hidden="true">Cómo jugar · paso 1 de 5</span>
+<div class="titles" id="titles" aria-hidden="true">
+<div id="prevtitle"><h2></h2></div>
+<div id="curtitle"><h2></h2></div>
+</div>
+<div class="message" id="message" aria-hidden="true"><p><span id="msgtyped"></span><span id="msgrest"></span></p></div>
+<div class="segs" aria-hidden="true">
+<span><i style="background:#FF5D4B"></i></span><span><i style="background:#FFAC00"></i></span><span><i style="background:#2A7AFF"></i></span><span><i style="background:#1EBDAE"></i></span><span><i style="background:#904EE2"></i></span>
+</div>
+<div class="status">
+<button class="back" id="back" type="button" aria-label="Paso anterior"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+<button class="show" id="show" type="button">Muéstrame</button>
+<button class="pause" id="pause" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><g id="pauseicon"><rect x="6" y="5" width="4" height="14" rx="1.5"/><rect x="14" y="5" width="4" height="14" rx="1.5"/></g><path id="playicon" d="M8 5.5v13l11-6.5z" style="display:none"/></svg><span id="pauselabel">Pausar</span></button>
+<span class="mono" id="hint" aria-hidden="true">Desplaza hacia abajo para jugar</span>
+<button class="repeat" id="repeat" type="button">Repetir tutorial</button>
+</div>
+</div>
+
+<div class="cards" id="cards" aria-hidden="true"><div class="cards-in">
+
+<div class="card" id="c1" data-shadow="#FF5D4B">
+<span class="label">RONDA 1 · EL BUSCADOR ES DEV</span>
+<div class="avatars"><span style="background:#FF5D4B">A</span><span style="background:#FFAC00">B</span><span style="background:#2A7AFF;color:#FFEFD7">C</span><span style="background:#904EE2;border-style:dashed;color:#FFEFD7">?</span></div>
+<div class="grow" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+<span class="sub">A, B y C ven</span>
+<span class="bigword" id="c1word">playa</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px"><span style="width:12px;height:12px;border-radius:6px;background:#904EE2;border:2px solid #0E0C1F"></span>Dev, el Buscador, aún no ve nada</div>
+</div>
+
+<div class="card" id="c2" data-shadow="#FFAC00">
+<span class="label">TU TURNO · PALABRA SECRETA: PLAYA</span>
+<span class="sub">Escribe una palabra que apunte a ella</span>
+<div class="field"><span id="c2typed"></span><u></u></div>
+<div class="note">No la digas en voz alta. No uses la palabra ni nada muy parecido.</div>
+<div class="grow"></div>
+<div class="btn" id="c2btn" style="background:#FFAC00">Enviar</div>
+<svg class="tap" id="tap2" viewBox="0 0 24 24" fill="#fff" stroke="#0E0C1F" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><rect x="7.2" y="2" width="3.6" height="15" rx="1.8"/><rect x="10.8" y="7" width="3.4" height="10" rx="1.7"/><rect x="14.2" y="8" width="3.4" height="9.5" rx="1.7"/><rect x="17.5" y="9.5" width="3.3" height="8.5" rx="1.65"/><rect x="2.6" y="12.6" width="8.6" height="3.6" rx="1.8" transform="rotate(32 6.9 14.4)"/><rect x="6" y="11.5" width="15" height="10.5" rx="4.5"/><rect x="7.6" y="11.9" width="12.4" height="5" fill="#fff" stroke="none"/></svg>
+</div>
+
+<div class="card" id="c3" data-shadow="#2A7AFF">
+<span class="label">YA ESTÁN TODAS LAS PALABRAS</span>
+<div class="chips2">
+<div><small>A</small><span class="chip" id="c3a" style="background:#FF5D4B">arena</span></div>
+<div><small>B</small><span class="chip" style="background:#FFAC00">sol</span></div>
+<div><small>C</small><span class="chip" id="c3c" style="background:#2A7AFF;color:#FFEFD7">arena</span></div>
+<div><small>E</small><span class="chip" style="background:#1EBDAE">olas</span></div>
+</div>
+<div class="grow" style="display:flex;align-items:center;justify-content:center"><span class="stamp" id="c3stamp">¿Misma palabra? Desaparece.</span></div>
+</div>
+
+<div class="card" id="c4" data-shadow="#1EBDAE">
+<div class="body" id="c4body">
+<span class="label">DEV, EL BUSCADOR, SOLO VE</span>
+<div style="display:flex;gap:14px;margin-top:6px"><span class="chip" style="background:#FFAC00;padding:14px 24px">sol</span><span class="chip" style="background:#1EBDAE;padding:14px 24px">olas</span></div>
+<span class="sub" style="margin-top:6px">Intento de Dev</span>
+<div class="field"><span id="c4typed"></span><u></u></div>
+<div class="grow"></div>
+<div class="btn" id="c4btn" style="background:#1EBDAE;align-self:center">Adivinar</div>
+</div>
+<div class="win" id="c4win"><b>¡Lo encontró!</b><span>La palabra era playa.</span><div class="confetti" id="confetti"></div></div>
+<svg class="tap" id="tap4" viewBox="0 0 24 24" fill="#fff" stroke="#0E0C1F" stroke-width="1.3" stroke-linejoin="round" aria-hidden="true"><rect x="7.2" y="2" width="3.6" height="15" rx="1.8"/><rect x="10.8" y="7" width="3.4" height="10" rx="1.7"/><rect x="14.2" y="8" width="3.4" height="9.5" rx="1.7"/><rect x="17.5" y="9.5" width="3.3" height="8.5" rx="1.65"/><rect x="2.6" y="12.6" width="8.6" height="3.6" rx="1.8" transform="rotate(32 6.9 14.4)"/><rect x="6" y="11.5" width="15" height="10.5" rx="4.5"/><rect x="7.6" y="11.9" width="12.4" height="5" fill="#fff" stroke="none"/></svg>
+</div>
+
+<div class="card" id="c5" data-shadow="#904EE2" style="padding:26px 30px;gap:12px">
+<span class="label">RESULTADO DEL EQUIPO · TODOS SUMAN</span>
+<div class="resbars" id="resbars"><i style="background:#FF5D4B"></i><i style="background:#FFAC00"></i><i style="background:#2A7AFF"></i><i style="background:#1EBDAE"></i><i style="background:#904EE2"></i><i style="background:#FFD23F"></i><i style="background:#8AC926"></i></div>
+<div class="rows">
+<div id="r1" style="background:#FFAC00"><b>✓</b><span>sol</span><em>suma</em></div>
+<div id="r2" style="background:#1EBDAE"><b>✓</b><span>olas</span><em>suma</em></div>
+<div id="r3" style="background:#F1E6D6"><b>✕</b><span style="text-decoration:line-through">arena · arena</span><em>cancelada: sin puntos</em></div>
+</div>
+<div class="foot" id="foot">Las palabras canceladas o engañosas no dan puntos.</div>
+</div>
+</div>
+
+</div>
+</div>
+</div>
+</section>
+
+<!-- The same tutorial as three blocks: reduced motion, no JavaScript, screen readers -->
+<section class="how-static" aria-label="Cómo jugar">
+<div class="block b1"><div class="wrap"><span class="num" aria-hidden="true">1</span><div class="txt"><h2>Escribe una palabra.</h2><p>Todos menos el Buscador ven una palabra secreta. Escribe una palabra que apunte a ella. Si la dices en voz alta, lo arruinas.</p></div></div></div>
+<div class="block b2"><div class="wrap"><span class="num" aria-hidden="true">2</span><div class="txt"><h2>¿Misma palabra? Desaparece.</h2><p>Las palabras que coinciden se cancelan entre sí. Solo quedan las únicas. Así que la mejor pista es la que a nadie más se le ocurre.</p></div></div></div>
+<div class="block b3"><div class="wrap"><span class="num" aria-hidden="true">3</span><div class="txt"><h2>El Buscador adivina.</h2><p>Lo que queda es todo lo que recibe. Si encuentran la palabra, todos suman. Las palabras canceladas o engañosas no dan puntos.</p></div></div></div>
+</section>
+
+<section class="stickers" aria-label="Datos">
+<div class="wrap">
+<div class="sticker s1"><b>3–10</b><span>jugadores en una sala</span></div>
+<div class="sticker s2"><b>Teléfono + TV</b><span>el tablero en la pantalla grande</span></div>
+<div class="sticker s3"><b>Inglés / Español</b><span>Idiomas disponibles. Se añadirán más en próximas versiones.</span></div>
+<div class="sticker s4"><b>Gratis</b><span>sin cuenta, sin complicaciones</span></div>
+</div>
+</section>
+</main>
+
+<footer class="site">
+<div class="wrap">
+<a class="brand" href="/es/">unhinted</a>
+<nav aria-label="Pie de página">
+<a href="/es/privacy/">Política de privacidad</a>
+<a href="/es/terms/">Términos</a>
+<a href="/es/support/">Soporte</a>
+</nav>
+<small>© 2026 José David Cano</small>
+</div>
+</footer>
+
+<script src="/assets/home.js" defer></script>
+</body>
+</html>

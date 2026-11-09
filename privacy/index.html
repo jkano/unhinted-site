@@ -6,11 +6,21 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="What the Unhinted app and its server collect, why, who sees it, and how to delete your account.">
 <meta name="theme-color" content="#0E0C1F">
+<script>
+/* Language: a choice made with the EN/ES button wins; otherwise the browser's first English or Spanish language. Spanish lives under /es/. */
+(function(){var l;try{l=localStorage.getItem('lang')}catch(e){}
+if(l!=='es'&&l!=='en'){l='en';var n=navigator.languages||[navigator.language||'en'];for(var i=0;i<n.length;i++){if(/^es/i.test(n[i])){l='es';break}if(/^en/i.test(n[i])){break}}}
+if(l==='es')location.replace('/es'+location.pathname+location.search+location.hash)})();
+</script>
 <link rel="canonical" href="https://unhinted.jdkno.com/privacy/">
+<link rel="alternate" hreflang="en" href="https://unhinted.jdkno.com/privacy/">
+<link rel="alternate" hreflang="es" href="https://unhinted.jdkno.com/es/privacy/">
+<link rel="alternate" hreflang="x-default" href="https://unhinted.jdkno.com/privacy/">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
 <link rel="preload" href="/assets/fonts/Nunito.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/lang.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#content">Skip to the text</a>
@@ -19,7 +29,7 @@
 <div class="wrap">
 <div class="top">
 <a class="brand" href="/">unhinted</a>
-<nav class="nav" aria-label="Main"><a href="/">← Home</a></nav>
+<nav class="nav" aria-label="Main"><a href="/">← Home</a><span class="lang" role="group" aria-label="Language"><a href="/privacy/" hreflang="en" data-lang="en" aria-current="true">EN</a><a href="/es/privacy/" hreflang="es" data-lang="es">ES</a></span></nav>
 </div>
 <div class="stack">
 <div class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>

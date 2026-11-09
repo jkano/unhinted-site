@@ -1,17 +1,19 @@
 // Home page: the phone drifts a little with the scroll, and the tutorial plays as a timeline.
-// The tutorial is one clock (T, in ms). When its section reaches the top of the window, scrolling stops and the clock runs by
-// itself. Scrolling down fast-forwards it, scrolling up rewinds it. At the end the page is free again and "Repeat tutorial" shows.
-// On a phone the page is not stopped: the tutorial plays by itself while it is on screen (and waits when it is not).
+//
+// The tutorial is one clock (T, in ms), and it plays while at least half of it is on screen (the page scrolls as normal).
+// Each step goes: its title and card come in, its message is "written" letter by letter, and then a "Show me" button waits.
+// Pressing it plays that step's animation on the card; when it ends the next step starts by itself. A "<" button goes back to the
+// previous step, Pause / Resume stops the clock, and at the end "Repeat tutorial" shows.
 // Without JavaScript, or with a reduced-motion setting, the page shows three static blocks instead.
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  // Only touch a text when it changes: replacing the same text 60 times a second removes the text node under the mouse, and the click is lost.
-  const set = (node, value) => { if (node.textContent !== value) node.textContent = value; };
   const cl = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const ease = (t) => t * t * (3 - 2 * t);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const wide = matchMedia('(min-width: 900px)');
+  // Only touch a text when it changes: replacing the same text 60 times a second removes the text node under the mouse, and the click is lost.
+  const set = (node, value) => { if (node.textContent !== value) node.textContent = value; };
 
   // ---- the phone ----
   const tilt = $('tilt');
@@ -27,46 +29,115 @@
   const section = $('tutorial');
   if (!section || reduced) return;
 
-  const END = 21000;
-  const S = [0, 3600, 7900, 11400, 16300];      // where each of the 5 steps starts (ms)
-  const E = [3600, 7900, 11400, 16300, 21000];   // and where it ends
-  const STEPS = [
-    ['Everyone sees the word. Except one.', 'Each round one player is the Seeker. Everyone else sees a secret word.'],
-    ['Write one word.', "Type a single word that points to it. Don't say it out loud, and nothing too close to it."],
-    ["Same word? It's gone.", 'Matching words cancel each other out. Only the unique ones survive.'],
-    ['The Seeker guesses.', "They see only what's left, and try to find the word."],
-    ['Everybody scores.', 'Find the word and the whole team wins together. Canceled or misleading words get no points.']
-  ];
+  // The page's language (<html lang>): the texts the script writes come from here; the rest is in the page itself.
+  const TEXT = {
+    en: {
+      steps: [
+        ['Everyone sees the word. Except one.', 'Each round one player is the Seeker. Everyone else sees a secret word.'],
+        ['Write one word.', "Type a single word that points to it. Don't say it out loud, and nothing too close to it."],
+        ["Same word? It's gone.", 'Matching words cancel each other out. Only the unique ones survive.'],
+        ['The Seeker guesses.', "They see only what's left, and try to find the word."],
+        ['Everybody scores.', 'Find the word and the whole team wins together. Canceled or misleading words get no points.']
+      ],
+      echo: 'sand', secret: 'beach', send: 'Send', sent: 'Sent', guess: 'Guess', guessed: 'Guessed',
+      stepOf: (n) => 'How to play · step ' + n + ' of 5', pause: 'Pause', resume: 'Resume', show: 'Show me',
+      atGate: 'Press “Show me” to continue', back: 'Previous step',
+      paused: 'Paused', pausedRead: 'Paused: take your time', playing: 'Playing', playsHere: 'Plays when you get here'
+    },
+    es: {
+      steps: [
+        ['Todos ven la palabra. Menos uno.', 'En cada ronda un jugador es el Buscador. Todos los demás ven una palabra secreta.'],
+        ['Escribe una palabra.', 'Escribe una sola palabra que apunte a ella. No la digas en voz alta, ni nada muy parecido.'],
+        ['¿Misma palabra? Desaparece.', 'Las palabras que coinciden se cancelan entre sí. Solo sobreviven las únicas.'],
+        ['El Buscador adivina.', 'Solo ve lo que queda e intenta encontrar la palabra.'],
+        ['Todos suman.', 'Si encuentran la palabra, todo el equipo gana junto. Las palabras canceladas o engañosas no dan puntos.']
+      ],
+      echo: 'arena', secret: 'playa', send: 'Enviar', sent: 'Enviado', guess: 'Adivinar', guessed: 'Adivinado',
+      stepOf: (n) => 'Cómo jugar · paso ' + n + ' de 5', pause: 'Pausar', resume: 'Continuar', show: 'Muéstrame',
+      atGate: 'Pulsa «Muéstrame» para continuar', back: 'Paso anterior',
+      paused: 'En pausa', pausedRead: 'En pausa: tómate tu tiempo', playing: 'Reproduciendo', playsHere: 'Se reproduce al llegar aquí'
+    }
+  };
+  const TX = TEXT[document.documentElement.lang === 'es' ? 'es' : 'en'];
+  const STEPS = TX.steps;
+
+  // The timeline (ms). For step i: S[i] it starts (title and card come in); the message is written from MSG[i] for TYPE[i];
+  // G[i] is the gate where "Show me" waits; the animation then runs for ANIM[i] and the step ends at E[i] (= S[i+1]).
+  const ANIM = [2500, 3900, 2800, 6200, 4700];           // how long each step's card animation lasts, with a short hold at the end
+  const AUTO = [false, false, false, false, true];       // the last step has no "Show me": its animation starts by itself
+  const TYPE = STEPS.map((s) => Math.min(3600, s[1].length * 26));
+  const MSG = [], TA = [], G = [], S = [], E = [];   // TA[i]: the message has been written (the buttons start to show)
+  STEPS.forEach((_, i) => {
+    S[i] = i === 0 ? 0 : E[i - 1];
+    MSG[i] = S[i] + 300;
+    TA[i] = MSG[i] + TYPE[i];
+    G[i] = TA[i] + (AUTO[i] ? 2000 : 400);              // the gate: a moment after the message ends, so the button has faded in (the last step waits 2 s)
+    E[i] = G[i] + ANIM[i];
+  });
+  const END = E[4];
+  const REPEAT_AT = END - 700;                           // the Repeat button shows in the last moments
+
   const COLORS = ['#FF5D4B', '#FFAC00', '#2A7AFF', '#1EBDAE', '#904EE2'];
   const cards = ['c1', 'c2', 'c3', 'c4', 'c5'].map($);
   const segs = Array.from(section.querySelectorAll('.segs i'));
   const barEls = Array.from($('resbars').children);
   const el = {
-    stepno: $('stepno'), hint: $('hint'), repeat: $('repeat'), pause: $('pause'), pauselabel: $('pauselabel'), pauseicon: $('pauseicon'), playicon: $('playicon'),
-    prev: $('prevtext'), cur: $('curtext'),
+    stepno: $('stepno'), hint: $('hint'), repeat: $('repeat'), show: $('show'), back: $('back'), pause: $('pause'), pauselabel: $('pauselabel'), pauseicon: $('pauseicon'), playicon: $('playicon'),
+    titles: $('titles'), prevtitle: $('prevtitle'), curtitle: $('curtitle'), message: $('message'), msgtyped: $('msgtyped'), msgrest: $('msgrest'),
     c1word: $('c1word'), c2typed: $('c2typed'), c2btn: $('c2btn'), c3a: $('c3a'), c3c: $('c3c'), c3stamp: $('c3stamp'),
-    c4typed: $('c4typed'), c4btn: $('c4btn'), c4found: $('c4found'), foot: $('foot'), rows: [$('r1'), $('r2'), $('r3')]
+    c4typed: $('c4typed'), c4btn: $('c4btn'), c4body: $('c4body'), c4win: $('c4win'), foot: $('foot'), rows: [$('r1'), $('r2'), $('r3')],
+    status: section.querySelector('.status'), tap2: $('tap2'), tap4: $('tap4')
   };
   const BASE = [0.38, 0.78, 1, 0.62, 0.9, 0.5, 0.26];
 
-  let T = 0, locked = false, released = false, paused = false, done = false, boost = 0, dir = 1, last = 0, raf = 0;
+  // Confetti for step 4: each piece flies up and out from the middle of the card, then falls (all computed from the clock, so rewinding works).
+  const CONFETTI_COLORS = ['#FF5D4B', '#FFAC00', '#2A7AFF', '#1EBDAE', '#904EE2', '#FFD23F', '#8AC926', '#FF70A6'];
+  const confetti = Array.from({ length: 36 }, (_, i) => {
+    const ang = (-160 + (i * 53) % 140) * Math.PI / 180, speed = 380 + (i * 97) % 280;
+    const node = document.createElement('i');
+    const round = i % 4 === 0, w = 8 + (i % 3) * 3, h = round ? w : 10 + (i % 4) * 3;
+    node.style.cssText = 'width:' + w + 'px;height:' + h + 'px;border-radius:' + (round ? '50%' : '2px') + ';background:' + CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+    $('confetti').appendChild(node);
+    return { node, vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed, rv: ((i * 71) % 720) - 360 };
+  });
 
-  const active = () => getComputedStyle(section).display !== 'none';
-  const locks = () => wide.matches && active();   // wide screens stop the page; phones just play while visible
-  let viewing = false, shownStep = -1;
-  const wordsEl = el.cur.parentElement;
-  function fitText() {                              // on a narrow screen the text block is as tall as the step's text, so there is no gap
-    wordsEl.style.height = wide.matches ? '' : el.cur.scrollHeight + 'px';
+  // The hand that taps a button: it appears, glides to the button, presses it (the button presses at the same moment) and fades out.
+  function tapHand(svg, btn, move0, move1, pressAt, fade0, fade1, u) {
+    const bx = btn.offsetLeft + btn.offsetWidth * 0.5, by = btn.offsetTop + btn.offsetHeight * 0.55;
+    const sx = bx + 150, sy = by + 110, p = ease(u(move0, move1));
+    const x = sx + (bx - sx) * p, y = sy + (by - sy) * p;
+    const press = u(pressAt, pressAt + 120) - u(pressAt + 120, pressAt + 260);
+    const op = u(move0 - 250, move0) * (1 - u(fade0, fade1));
+    svg.style.opacity = op.toFixed(2);
+    svg.style.transform = 'translate(' + (x - 16.5).toFixed(1) + 'px,' + (y - 4).toFixed(1) + 'px) scale(' + (1 - 0.2 * press).toFixed(3) + ')';
   }
+
+  let T = 0, paused = false, done = false, last = 0, raf = 0;
+  let viewing = false, shownStep = -1;
+  const shown = [false, false, false, false, false];     // which steps have had "Show me" pressed
   const cardsEl = $('cards');
-  function fit() {                                   // on a narrow screen the cards are drawn smaller to fit the width
+  const stepAt = (t) => { let a = 0; for (let i = 0; i < 5; i++) if (t >= S[i]) a = i; return a; };
+
+  function fit() {                                         // on a narrow screen the cards are drawn smaller to fit the width
     const s = wide.matches ? 1 : Math.min(1, Math.max(0.3, cardsEl.clientWidth / 490));
     cardsEl.style.setProperty('--s', s.toFixed(3));
+    // centered under the text (the card and its shadow are 480 px wide)
+    cardsEl.style.setProperty('--dx', wide.matches ? '0px' : Math.max(0, (cardsEl.clientWidth - 480 * s) / 2).toFixed(1) + 'px');
   }
+  function fitText() {                                     // the title and message blocks are as tall as the step's own text
+    el.titles.style.height = el.curtitle.firstElementChild.scrollHeight + 'px';
+    el.message.style.height = el.message.firstElementChild.scrollHeight + 'px';
+  }
+
+  // The step whose gate the clock is stopped at ("Show me" not pressed yet), or -1.
+  const waitingGate = () => { const a = stepAt(T); return (T >= G[a] && !shown[a] && !AUTO[a]) ? a : -1; };
+  // The step whose "Show me" is on offer: the message is written and the button not pressed yet (from the moment it starts to fade in).
+  const offering = () => { const a = stepAt(T); return (!AUTO[a] && T >= TA[a] && !shown[a]) ? a : -1; };
 
   function render() {
     const u = (a, b) => cl((T - a) / (b - a));
-    const enter = [1, ease(u(3600, 4300)), ease(u(7900, 8600)), ease(u(11400, 12100)), ease(u(16300, 17000))];
+    const a = stepAt(T);
+    const enter = [1, 1, 2, 3, 4].map((_, n) => (n === 0 ? 1 : ease(u(S[n], S[n] + 700))));
     cards.forEach((card, i) => {
       let b = 0;
       for (let j = i + 1; j < 5; j++) b += enter[j];          // the last card has nothing after it: it stays solid
@@ -79,19 +150,20 @@
     });
 
     // card 1
-    const word = u(300, 800);
+    const word = u(G[0], G[0] + 500);
     el.c1word.style.opacity = word.toFixed(2);
     el.c1word.style.transform = 'scale(' + (0.8 + 0.2 * word).toFixed(3) + ')';
     // card 2
-    set(el.c2typed, 'sand'.slice(0, Math.floor(u(4600, 5600) * 4 + 0.001)));
-    const press2 = u(7200, 7450);
-    el.c2btn.style.opacity = u(5800, 6050).toFixed(2);
+    set(el.c2typed, TX.echo.slice(0, Math.floor(u(G[1], G[1] + 1000) * TX.echo.length + 0.001)));
+    const press2 = u(G[1] + 2200, G[1] + 2450);
+    el.c2btn.style.opacity = u(G[1] + 1200, G[1] + 1450).toFixed(2);
     el.c2btn.style.transform = 'translateY(' + (press2 * 4).toFixed(1) + 'px)';
     el.c2btn.style.boxShadow = '0 ' + (5 - press2 * 5).toFixed(1) + 'px 0 #0E0C1F';
     el.c2btn.style.background = press2 > 0.5 ? '#FFD23F' : '#FFAC00';
-    set(el.c2btn, press2 > 0.5 ? 'Sent' : 'Send');
+    set(el.c2btn, press2 > 0.5 ? TX.sent : TX.send);
+    tapHand(el.tap2, el.c2btn, G[1] + 1300, G[1] + 2150, G[1] + 2200, G[1] + 2450, G[1] + 2750, u);
     // card 3
-    const struck = T >= 9400;
+    const struck = T >= G[2] + 100;                       // not at the gate itself: "Show me" is what cancels the words
     [[el.c3a, '#FF5D4B', ''], [el.c3c, '#2A7AFF', '#FFEFD7']].forEach(([chip, bg, ink]) => {
       chip.style.background = struck ? '#F1E6D6' : bg;
       chip.style.color = struck ? '' : ink;
@@ -99,132 +171,128 @@
       chip.style.opacity = struck ? '0.4' : '1';
       chip.style.transform = struck ? 'scale(0.92)' : 'none';
     });
-    const stamp = u(9600, 10000);
+    const stamp = u(G[2] + 200, G[2] + 600);
     el.c3stamp.style.opacity = stamp.toFixed(2);
     el.c3stamp.style.transform = 'rotate(-6deg) scale(' + (1.2 - 0.2 * stamp).toFixed(3) + ')';
     // card 4
-    set(el.c4typed, 'beach'.slice(0, Math.floor(u(12400, 13650) * 5 + 0.001)));
-    const press4 = u(15200, 15450);
-    el.c4btn.style.opacity = u(13850, 14100).toFixed(2);
+    set(el.c4typed, TX.secret.slice(0, Math.floor(u(G[3], G[3] + 1250) * TX.secret.length + 0.001)));
+    const press4 = u(G[3] + 2700, G[3] + 2950);
+    el.c4btn.style.opacity = u(G[3] + 1450, G[3] + 1700).toFixed(2);
     el.c4btn.style.transform = 'translateY(' + (press4 * 4).toFixed(1) + 'px)';
     el.c4btn.style.boxShadow = '0 ' + (5 - press4 * 5).toFixed(1) + 'px 0 #0E0C1F';
-    set(el.c4btn, press4 > 0.5 ? 'Guessed' : 'Guess');
-    el.c4found.style.opacity = u(15700, 16000).toFixed(2);
+    set(el.c4btn, press4 > 0.5 ? TX.guessed : TX.guess);
+    tapHand(el.tap4, el.c4btn, G[3] + 1650, G[3] + 2650, G[3] + 2700, G[3] + 2950, G[3] + 3250, u);
+    el.c4body.style.opacity = (1 - u(G[3] + 3200, G[3] + 3600)).toFixed(2);
+    const win = u(G[3] + 3400, G[3] + 3800);
+    el.c4win.style.opacity = win.toFixed(2);
+    el.c4win.style.transform = 'scale(' + (0.9 + 0.1 * win).toFixed(3) + ')';
+    const ct = Math.max(0, (T - (G[3] + 3500)) / 1000);
+    confetti.forEach((c) => {
+      const x = c.vx * ct, y = c.vy * ct + 0.5 * 1300 * ct * ct;
+      c.node.style.opacity = ct <= 0 ? '0' : (1 - cl((ct - 1.3) / 0.8)).toFixed(2);
+      c.node.style.transform = 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) rotate(' + (c.rv * ct).toFixed(0) + 'deg)';
+    });
     // card 5
-    const k5 = u(17200, 18400);
+    const k5 = u(G[4], G[4] + 1200);
     barEls.forEach((bar, i) => { bar.style.height = Math.max(8, Math.round(BASE[i] * 120 * cl(k5 * 2.2 - i * 0.08))) + 'px'; });
-    [[0, 18000, 18300], [1, 18500, 18800], [2, 19000, 19300]].forEach(([i, a, b]) => { el.rows[i].style.opacity = u(a, b).toFixed(2); });
-    el.foot.style.opacity = u(19600, 19900).toFixed(2);
+    [[0, 800, 1100], [1, 1300, 1600], [2, 1800, 2100]].forEach(([i, x, y]) => { el.rows[i].style.opacity = u(G[4] + x, G[4] + y).toFixed(2); });
+    el.foot.style.opacity = u(G[4] + 2400, G[4] + 2700).toFixed(2);
 
-    // text on the left: the old step fades out as the new one fades in
-    let a = 0;
-    for (let i = 0; i < 5; i++) if (T >= S[i]) a = i;
+    // the title fades from the old step to the new one, and the message is "written" letter by letter
     const fade = a > 0 ? u(S[a], S[a] + 500) : 1;
     const prev = a > 0 ? a - 1 : 0;
-    set(el.stepno, 'How to play · step ' + (a + 1) + ' of 5');
-    set(el.cur.querySelector('h2'), STEPS[a][0]);
-    set(el.cur.querySelector('p'), STEPS[a][1]);
-    set(el.prev.querySelector('h2'), STEPS[prev][0]);
-    set(el.prev.querySelector('p'), STEPS[prev][1]);
+    set(el.stepno, TX.stepOf(a + 1));
+    set(el.curtitle.firstElementChild, STEPS[a][0]);
+    set(el.prevtitle.firstElementChild, STEPS[prev][0]);
+    el.curtitle.style.opacity = fade.toFixed(2);
+    el.prevtitle.style.opacity = (a > 0 ? 1 - fade : 0).toFixed(2);
+    const text = STEPS[a][1];
+    const n = Math.floor(u(MSG[a], MSG[a] + TYPE[a]) * text.length + 0.001);
+    set(el.msgtyped, text.slice(0, n));
+    set(el.msgrest, text.slice(n));
     if (a !== shownStep) { shownStep = a; fitText(); }
-    el.cur.style.opacity = fade.toFixed(2);
-    el.prev.style.opacity = (a > 0 ? 1 - fade : 0).toFixed(2);
     segs.forEach((seg, i) => { seg.style.width = (cl((T - S[i]) / (E[i] - S[i])) * 100).toFixed(1) + '%'; });
 
-    const endShown = T >= 20300;
-    el.hint.style.display = endShown ? 'none' : '';
-    el.pause.style.display = endShown ? 'none' : '';
+    // buttons and hint
+    const typedAt = TA[a];
+    // The last step has no buttons until the end, where only "Repeat tutorial" shows.
+    const rowOp = a < 4 ? u(typedAt, typedAt + 400) * (1 - u(E[a] - 400, E[a])) : u(REPEAT_AT, REPEAT_AT + 400);
+    el.status.style.opacity = rowOp.toFixed(2);
+    el.status.style.visibility = rowOp > 0 ? 'visible' : 'hidden';
+    const endShown = T >= REPEAT_AT;
+    const atGate = offering() >= 0;
+    el.show.classList.toggle('on', atGate && !endShown);
+    set(el.show, TX.show);
+    el.back.style.display = (a === 0 || endShown) ? 'none' : '';      // the first step has nothing before it
+    el.back.setAttribute('aria-label', TX.back);
+    el.pause.style.display = (endShown || atGate || a === 4) ? 'none' : '';
+    el.hint.style.display = (endShown || a === 4) ? 'none' : '';
     el.pause.setAttribute('aria-pressed', paused ? 'true' : 'false');
-    set(el.pauselabel, paused ? 'Resume' : 'Pause');
+    set(el.pauselabel, paused ? TX.resume : TX.pause);
     el.pauseicon.style.display = paused ? 'none' : '';
     el.playicon.style.display = paused ? '' : 'none';
-    set(el.hint, paused ? 'Paused: take your time'
-      : locked ? 'Scroll to speed up or rewind'
-      : wide.matches ? (T <= 0 ? 'Scroll down to play' : 'Paused')
-      : (viewing && !done ? 'Playing' : (T <= 0 ? 'Plays when you get here' : 'Paused')));
+    set(el.hint, atGate ? TX.atGate
+      : paused ? TX.pausedRead
+      : (viewing && !done ? TX.playing : (T <= 0 ? TX.playsHere : TX.paused)));
     el.repeat.classList.toggle('on', endShown);
   }
 
-  function push(amount) {
-    const d = amount >= 0 ? 1 : -1;
-    if (d !== dir) { dir = d; boost = 0; }
-    boost = Math.min(12, boost + Math.abs(amount));
+  // "Show me": opens the gate of the step whose button is on offer, so its animation plays.
+  function showMe() {
+    const g = offering();
+    if (g < 0) return;
+    shown[g] = true;
+    paused = false; last = 0;
+    kick();
+    render();
   }
 
-  const running = () => !done && !paused && (locked || (!wide.matches && viewing));
+  // "<": back to the previous step, ready to be played again (its message written, "Show me" on offer).
+  function goBack() {
+    const a = stepAt(T);
+    if (a === 0) return;
+    T = G[a - 1];
+    for (let i = a - 1; i < 5; i++) shown[i] = false;
+    done = false; paused = false; last = 0;
+    kick();
+    render();
+  }
+
+  const running = () => !done && !paused && waitingGate() < 0 && viewing;
 
   function frame(now) {
     raf = 0;
     if (!running()) { last = 0; render(); return; }
     const dt = last ? Math.min(100, now - last) : 16;
     last = now;
-    // Forward: normal speed plus the boost. Rewinding: only while you keep scrolling up, at the boost's speed.
-    const rate = dir < 0 ? -boost : 1 + boost;
-    T = cl(T + dt * rate, 0, END);
-    boost *= 0.92;
-    if (dir < 0 && boost < 0.15) { dir = 1; boost = 0; }
-    render();
-    if (T <= 0 && dir < 0 && locked) {              // rewound to the very start: the page is free to scroll up again
-      released = true; unlock(); return;
+    T = cl(T + dt, 0, END);
+    // A gate that has not been opened stops the clock.
+    for (let i = 0; i < 5; i++) {
+      if (T < TA[i]) shown[i] = false;
+      else if (!shown[i] && !AUTO[i] && T > G[i]) T = G[i];
     }
-    if (T >= END) { done = true; if (locked) unlock(); else render(); return; }
+    render();
+    if (T >= END) { done = true; render(); return; }
     raf = requestAnimationFrame(frame);
   }
 
-  function kick() { if (!raf && running()) raf = requestAnimationFrame(frame); }
+  function kick() { if (!raf && (running() || waitingGate() >= 0)) raf = requestAnimationFrame(frame); }
 
-  function lock(keepTime) {
-    locked = true; done = false; boost = 0; dir = 1; last = 0;
-    if (!keepTime) T = 0;
-    const target = section.getBoundingClientRect().top + window.scrollY;
-    document.documentElement.style.overflow = 'hidden';
-    window.scrollTo({ top: target, behavior: 'smooth' });
-    kick();
-  }
+  window.addEventListener('resize', () => { fit(); fitText(); kick(); });
+  el.show.addEventListener('click', showMe);
+  el.back.addEventListener('click', goBack);
+  // Pause: the clock stops; Resume goes on from the same moment.
+  el.pause.addEventListener('click', () => { paused = !paused; last = 0; kick(); render(); });
+  el.repeat.addEventListener('click', () => { T = 0; done = false; paused = false; shown.fill(false); last = 0; render(); kick(); });
 
-  function unlock() {
-    locked = false;
-    document.documentElement.style.overflow = '';
-    render();
-  }
-
-  function check() {
-    if (locked || done || paused || !locks()) return;
-    const top = section.getBoundingClientRect().top;
-    // After rewinding to the start the page stays free until you have scrolled up past the section; then it can lock again.
-    if (released) { if (top > 300) released = false; return; }
-    if (top <= 140 && top >= -300) lock(T > 0);   // keep the time if it was paused part way
-  }
-
-  window.addEventListener('scroll', check, { passive: true });
-  window.addEventListener('wheel', (e) => { if (locked) push(e.deltaY / 45); }, { passive: true });
-  let ty;
-  window.addEventListener('touchmove', (e) => {
-    if (!locked || !e.touches[0]) return;
-    const y = e.touches[0].clientY;
-    if (ty !== undefined) push((ty - y) / 25);   // finger up = scroll down = forward
-    ty = y;
-  }, { passive: true });
-  window.addEventListener('touchend', () => { ty = undefined; }, { passive: true });
-  window.addEventListener('keydown', (e) => {
-    if (!locked || (e.target.closest && e.target.closest('button'))) return;
-    if ([' ', 'PageDown', 'ArrowDown', 'End'].includes(e.key)) { push(3); e.preventDefault(); }
-    else if (['PageUp', 'ArrowUp', 'Home'].includes(e.key)) { push(-3); e.preventDefault(); }
-  });
-  window.addEventListener('resize', () => { fit(); fitText(); if (locked && !locks()) unlock(); kick(); });
-  // Pause: the clock stops and, on a wide screen, the page is free again so there is time to read; Resume locks it again and goes on.
-  el.pause.addEventListener('click', () => {
-    if (!paused) { paused = true; if (locked) unlock(); render(); }
-    else { paused = false; last = 0; if (locks() && section.getBoundingClientRect().top <= 140 && section.getBoundingClientRect().top >= -300) lock(true); else kick(); render(); }
-  });
-  el.repeat.addEventListener('click', () => { T = 0; done = false; released = false; paused = false; last = 0; render(); if (locks()) lock(); else kick(); });
-
-  // On a phone: play while at least half of the tutorial is on screen, wait when it is not.
+  // The tutorial plays while at least half of it is on screen, and waits when it is not.
   if ('IntersectionObserver' in window) {
     new IntersectionObserver((entries) => { viewing = entries[0].isIntersecting; kick(); render(); }, { threshold: 0.45 }).observe(section);
+  } else {
+    viewing = true;
   }
 
   fit();
   render();
-  check();
+  fitText();
 })();
