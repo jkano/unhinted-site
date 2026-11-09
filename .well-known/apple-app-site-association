@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["DNFZ3V3KN7.com.jdkno.unhinted"],
+        "components": [
+          { "/": "/j/*", "comment": "A share link to a room" }
+        ]
+      }
+    ]
+  }
+}

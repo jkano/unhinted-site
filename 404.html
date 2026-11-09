@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Unhinted</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0E0C1F">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<!-- GitHub Pages serves this file for any address that does not exist, so it also answers a share link such as /j/K7MQ4P.
+     When Universal Links are set up (R3), the phone opens the app instead of this page. -->
+<header class="doc-head">
+<div class="wrap">
+<div class="top">
+<a class="brand" href="/">unhinted</a>
+<nav class="nav" aria-label="Main"><a href="/">← Home</a></nav>
+</div>
+</div>
+</header>
+
+<main class="join">
+<div class="wrap">
+<div class="box" id="join" hidden>
+<div class="bars" aria-hidden="true" style="--h:56px"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<h1>You're invited to a room</h1>
+<span class="code" id="code" aria-label="Room code"></span>
+<p>Open Unhinted on your iPhone and type this code on Home to join.</p>
+<p><b>Unhinted is coming soon to the App Store.</b> If you already have the app, tap Paste on Home after copying the code.</p>
+<a href="/" style="font-weight:900">What is Unhinted?</a>
+</div>
+<div class="box" id="missing" hidden>
+<h1>This page does not exist</h1>
+<p>The address may be wrong or old.</p>
+<a href="/" style="font-weight:900">Go to the home page</a>
+</div>
+</div>
+</main>
+
+<script>
+(function () {
+  var m = location.pathname.match(/^\/j\/([A-Za-z0-9]{6})\/?$/);
+  if (m) {
+    document.getElementById('code').textContent = m[1].toUpperCase().replace(/^(...)(...)$/, '$1 $2');
+    document.getElementById('join').hidden = false;
+    document.title = 'Join a room · Unhinted';
+  } else {
+    document.getElementById('missing').hidden = false;
+  }
+})();
+</script>
+</body>
+</html>
